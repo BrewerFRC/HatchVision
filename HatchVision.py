@@ -97,6 +97,7 @@ def process():
         okCount = 0
         j = 0
         OkCountours = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        rightCountors = [11]
         img_rect = img = numpy.zeros((IMG_HEIGHT, IMG_WIDTH,3), numpy.uint8)
         print("# of contours: " +str(len(contours)))
 
@@ -113,29 +114,27 @@ def process():
                 ratioError = ratio - (5.826/3.313)
                 #print (h, w, w*h, ratio)
                 if abs(ratioError) < 1 and  w*h > 100:
-                    ((x_t, y_t), (w_t, h_t), angle) = cv2.minAreaRect(c)
+                    tiltedRect = cv2.minAreaRect(c)
+                    angle = tiltedRect[2]
+                    #((x_t, y_t), (w_t, h_t), angle) = tiltedRect
                     #angle is negative, -90 is the same as -0
                     #right leaning is -0 to -20
                     #left learning is -90 to -70
                     #angle of targets is 14.5 and 75.5
-                    print(angle)
-                    #center = x + (w/2)
-                    if okCount > 11:
-                        print("Too much contours")
-                        break
-                    if showImages: 
-                        cv2.rectangle(img_rect, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                    OkCountours[okCount] = j
-                    okCount = okCount + 1
+                    """print(angle)"""
+                    if angle >= -0 and angle <= -20:
+                        if okCount > 11:
+                            print("Too much contours")
+                            break
+                        if showImages: 
+                            cv2.rectangle(img_rect, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                        OkCountours[okCount] = j
+                        okCount = okCount + 1
                 j = j +1
         else:
             print ("No contours found")
         # print "RatioOkCount:",okCount
         i = 0
-        markercount = 0
-        Yr = [0,0]
-        Xr = [0,0]
-        pixAngle = 0
         while  okCount > i+1:
             #print("okcountour")
             x,y,w,h = cv2.boundingRect(contours[OkCountours[i]])
