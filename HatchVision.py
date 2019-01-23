@@ -132,7 +132,7 @@ def process():
                     #angle of targets is 14.5 and 75.5
                     #print("Angle of possibles: "+ str(angle))
                     if angle >= 8 and angle <= 22:
-                        #print("right")
+                        print("right "+str(z))
                         if rightCount >= 11:
                             print("Too much contours")
                             break
@@ -142,7 +142,8 @@ def process():
                         rightCount += 1
                         #OkCountours[okCount] = j
                         okCount = okCount + 1
-                    elif angle >= 70 and angle <= 82: 
+                    elif angle >= 70 and angle <= 82:
+                        print("left "+str(z))
                         if leftCount >= 11:
                             print("Too much contours")
                             break
@@ -168,9 +169,9 @@ def process():
                         # unsure which height to check
                         distanceBetween = abs(x_l-x_r)
                         if distanceBetween == 0 :
-                            print("Distance between is 0")
+                            """print("Distance between is 0")
                             print("left x is "+str(x_l))
-                            print("right x is "+str(x_r))
+                            print("right x is "+str(x_r))"""
                             #distanceBetween = 100
                             break
                         pairError = (w_r/distanceBetween) - REAL_PAIR_RATIO
