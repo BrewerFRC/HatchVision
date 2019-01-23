@@ -29,6 +29,10 @@ IMG_WIDTH = 640
 IMG_HEIGHT = 368
 IMG_CENTER_ERROR = 0
 
+#Actual targets
+REAL_RATIO = (5.826/3.313)
+REAL_PAIR_RATIO = (3.313/8)
+
 GEAR_STATE = 0
 BOILER_STATE = 1
 video = pistream.PiVideoStream((IMG_WIDTH,IMG_HEIGHT)).start()
@@ -97,13 +101,18 @@ def process():
         okCount = 0
         j = 0
         OkCountours = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-        rightCountors = [11]
+        rightContours = [0] * 11
+        rightCount = 0
+        leftContours =  [0] * 11
+        leftCount = 0
         img_rect = img = numpy.zeros((IMG_HEIGHT, IMG_WIDTH,3), numpy.uint8)
-        print("# of contours: " +str(len(contours)))
+        #print("# of contours: " +str(len(contours)))
 
         
         #Check all contours, mark ones that may look like a target
         if len(contours) > 0:
+            #index of contour
+            z = 0
             for c in contours:
                 # Is the contour big enough to be a target?
                 #area = cv2.contourArea(c) # area of rectangle that is filled
@@ -111,38 +120,68 @@ def process():
                 
                 ratio = float(h) / float(w)
                 #5.826/3.313 = 1.758527
-                ratioError = ratio - (5.826/3.313)
+                ratioError = ratio - REAL_RATIO
                 #print (h, w, w*h, ratio)
                 if abs(ratioError) < 1 and  w*h > 100:
                     tiltedRect = cv2.minAreaRect(c)
-                    angle = tiltedRect[2]
+                    angle = abs(tiltedRect[2])
                     #((x_t, y_t), (w_t, h_t), angle) = tiltedRect
                     #angle is negative, -90 is the same as -0
                     #right leaning is -0 to -20
                     #left learning is -90 to -70
                     #angle of targets is 14.5 and 75.5
-                    """print(angle)"""
-                    if angle >= -0 and angle <= -20:
-                        if okCount > 11:
+                    #print("Angle of possibles: "+ str(angle))
+                    if angle >= 8 and angle <= 22:
+                        #print("right")
+                        if rightCount >= 11:
                             print("Too much contours")
                             break
                         if showImages: 
                             cv2.rectangle(img_rect, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                        OkCountours[okCount] = j
+                        rightContours[rightCount] = z
+                        rightCount += 1
+                        #OkCountours[okCount] = j
                         okCount = okCount + 1
-                j = j +1
+                    elif angle >= 70 and angle <= 82: 
+                        if leftCount >= 11:
+                            print("Too much contours")
+                            break
+                        if showImages:
+                            cv2.rectangle(img_rect, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                        leftContours[leftCount] = z
+                        leftCount += 1
+                        okCount += 1
+                z+= 1
+
+            if rightCount != 0 and leftCount != 0:
+                #print(str(rightCount)+" "+str(leftCount))
+                i = 0
+                while i <= rightCount:
+                    x_r,y_r,w_r,h_r = cv2.boundingRect(contours[rightContours[i]])
+                    print("right contour: " + str(rightContours[i]))
+                    j = 0
+                    while j <= leftCount:
+                        x_l, y_l, w_r, h_r = cv2.boundingRect(contours[leftContours[j]])
+                        print("left contour: "+ str(leftContours[j]))
+                        # real length of target/distance between
+                        # 3.313/8
+                        # unsure which height to check
+                        distanceBetween = abs(x_l-x_r)
+                        if distanceBetween == 0 :
+                            print("Distance between is 0")
+                            print("left x is "+str(x_l))
+                            print("right x is "+str(x_r))
+                            #distanceBetween = 100
+                            break
+                        pairError = (w_r/distanceBetween) - REAL_PAIR_RATIO
+                        if pairError < 1: 
+                            print("okay pair"+str(i)+" "+str(j))
+                        j+= 1
+                    i+= 1
+                    
         else:
             print ("No contours found")
-        # print "RatioOkCount:",okCount
-        i = 0
-        while  okCount > i+1:
-            #print("okcountour")
-            x,y,w,h = cv2.boundingRect(contours[OkCountours[i]])
-            """j = 0
-            while i+j < okCount :
-                x_p,y_p,w_p,h_p = cv2.boundingRect(contours[OkCountours[i+j]])
-            j = j +1"""
-            i = i+1
+        #print ("OkCount: ", okCount)
 
 
         if showImages:
