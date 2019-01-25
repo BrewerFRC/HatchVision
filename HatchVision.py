@@ -30,8 +30,11 @@ IMG_HEIGHT = 368
 IMG_CENTER_ERROR = 0
 
 #Actual targets
-REAL_RATIO = (5.826/3.313)
-REAL_PAIR_RATIO = (3.313/8)
+REAL_HEIGHT = 5.826
+REAL_WIDTH = 3.313
+REAL_DISTANCE_BETWEEN = 8
+REAL_RATIO = (REAL_HEIGHT/REAL_WIDTH)
+REAL_PAIR_RATIO = REAL_WIDTH/(REAL_WIDTH+REAL_DISTANCE_BETWEEN)
 
 GEAR_STATE = 0
 BOILER_STATE = 1
@@ -41,13 +44,17 @@ time.sleep(2)  #Give camera a chance to stablize
 
 
 
-
+"""
+    Not Changed
+"""
 def dst2errorX(TargetCenter, Distance) :
     # theta = math.atan(TargetCenter/581.4)
     theta = math.atan((TargetCenter-IMG_CENTER_ERROR)/622.7722)
     return Distance*math.sin(theta)
 
-
+def pause() :
+    print("pause")
+    x = input()
 
 
 # Process images continuously, outputting a comamnd to the robot each cycle
@@ -97,14 +104,15 @@ def process():
         # We'll assume that no goal is visible at first.
         # The value of 'turn' will indicate what action the robot should take.
         # 0=no goal, do nothing, 999=aligned with goal, shoot, +/-x.xxx=turn rate to move to target
-        turn = 0
-        okCount = 0
-        j = 0
-        OkCountours = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-        rightContours = [0] * 11
-        rightCount = 0
-        leftContours =  [0] * 11
-        leftCount = 0
+        #turn = 0
+        #okCount = 0
+        #j = 0
+        #OkCountours = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        rightContours = []
+        #rightCount = 0
+        leftContours = []
+        #leftContours =  [0] * 11
+        #leftCount = 0
         img_rect = img = numpy.zeros((IMG_HEIGHT, IMG_WIDTH,3), numpy.uint8)
         #print("# of contours: " +str(len(contours)))
 
@@ -112,7 +120,7 @@ def process():
         #Check all contours, mark ones that may look like a target
         if len(contours) > 0:
             #index of contour
-            z = 0
+            #z = 0
             for c in contours:
                 # Is the contour big enough to be a target?
                 #area = cv2.contourArea(c) # area of rectangle that is filled
@@ -131,29 +139,48 @@ def process():
                     #left learning is -90 to -70
                     #angle of targets is 14.5 and 75.5
                     #print("Angle of possibles: "+ str(angle))
-                    if angle >= 8 and angle <= 22:
-                        print("right "+str(z))
-                        if rightCount >= 11:
-                            print("Too much contours")
-                            break
+                    if angle >= 5 and angle <= 25:
+                        #print("right X + Y: "+str(tiltedRect[0])+" angle: "+str(angle))
+                        print("right ", tiltedRect)
+                        #if rightCount >= 11:
+                        #    print("Too much contours")
+                        #    break
                         if showImages: 
                             cv2.rectangle(img_rect, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                        rightContours[rightCount] = z
-                        rightCount += 1
+                        rightContours.append(tiltedRect)
+                        #rightContours.append(z)
+                        #rightCount += 1
                         #OkCountours[okCount] = j
-                        okCount = okCount + 1
-                    elif angle >= 70 and angle <= 82:
-                        print("left "+str(z))
-                        if leftCount >= 11:
-                            print("Too much contours")
-                            break
+                        #okCount = okCount + 1
+                    elif angle >= 50 and angle <= 85:
+                        #print("lef X + Y: "+str(tiltedRect[0])+" angle: "+str(angle))
+                        print("left ", tiltedRect)
+                        #if leftCount >= 11:
+                        #    print("Too much contours")
+                        #    break
                         if showImages:
                             cv2.rectangle(img_rect, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                        leftContours[leftCount] = z
-                        leftCount += 1
-                        okCount += 1
-                z+= 1
+                        leftContours.append(tiltedRect)
+                        #leftContours[leftCount] = z
+                        #leftCount += 1
+                        #okCount += 1
+                #z+= 1
+            #print("left count is: "+str(leftCount)+ " right count is: "+str(rightCount))
+            """q = 0           
+            while q<len(rightContours):
+                print("right# "+str(rightContours[q]))
+                q+= 1
 
+            q = 0           
+            while q<len(leftContours):
+                print("left# "+str(leftContours[q]))
+                q+= 1
+            """
+
+            if showImages:
+                cv2.imshow("img_rect_mid", img_rect)
+            pause()
+            """
             if rightCount != 0 and leftCount != 0:
                 #print(str(rightCount)+" "+str(leftCount))
                 i = 0
@@ -162,16 +189,16 @@ def process():
                     print("right contour: " + str(rightContours[i]))
                     j = 0
                     while j <= leftCount:
-                        x_l, y_l, w_r, h_r = cv2.boundingRect(contours[leftContours[j]])
+                        x_l, y_l, w_l, h_l = cv2.boundingRect(contours[leftContours[j]])
                         print("left contour: "+ str(leftContours[j]))
                         # real length of target/distance between
                         # 3.313/8
                         # unsure which height to check
                         distanceBetween = abs(x_l-x_r)
                         if distanceBetween == 0 :
-                            """print("Distance between is 0")
+                            print("Distance between is 0")
                             print("left x is "+str(x_l))
-                            print("right x is "+str(x_r))"""
+                            print("right x is "+str(x_r))
                             #distanceBetween = 100
                             break
                         pairError = (w_r/distanceBetween) - REAL_PAIR_RATIO
@@ -187,8 +214,11 @@ def process():
 
         if showImages:
             cv2.imshow("img_bgr",img_bgr)
-            cv2.imshow("img_rect", img_rect)
+            # Commented for testing
+            #cv2.imshow("img_rect", img_rect)
+            #
 
+        """
 
         # Wait 1ms for keypress. q to quit.
         if cv2.waitKey(1) &0xFF == ord('q'):
