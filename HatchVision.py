@@ -42,7 +42,7 @@ MAX_LEFT_ANGLE = 85
 
 #Should be 14.5
 MIN_RIGHT_ANGLE = 5
-MAX_RIGHT_ANGLE = 25
+MAX_RIGHT_ANGLE = 30
 
 GEAR_STATE = 0
 BOILER_STATE = 1
@@ -191,8 +191,8 @@ def process():
                 cv2.imshow("img_rect_mid", img_rect)
             pause()
             
-            print("# of rightContours ", len(rightContours), " # of leftContours ", len(leftContours))
-            """if len(rightContours) != 0 and len(leftContours) != 0:
+            #print("# of rightContours ", len(rightContours), " # of leftContours ", len(leftContours))
+            """iflen(rightContours) != 0 and len(leftContours) != 0:
                 #print(str(rightCount)+" "+str(leftCount))
                 print("working")"""
             i = 0
@@ -216,6 +216,7 @@ def process():
                     pairError = (w_r/distanceBetween) - REAL_PAIR_RATIO
                     if pairError < 1: 
                         print("okay pair"+str(i)+" "+str(j))
+                        print("midpoint", (x_r-x_l)/2)
                     j+= 1
                 i+= 1
                     
