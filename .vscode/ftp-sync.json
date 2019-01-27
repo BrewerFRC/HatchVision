@@ -1,6 +1,6 @@
 {
     "remotePath": "./HatchVision",
-    "host": "192.168.0.107",
+    "host": "192.168.0.108",
     "username": "pi",
     "password": "pi",
     "port": 21,

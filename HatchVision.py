@@ -29,6 +29,9 @@ IMG_WIDTH = 640
 IMG_HEIGHT = 368
 IMG_CENTER_ERROR = 0
 
+# The axis of symmetry when square to target
+X_CENTER = 295 #was calculated 1/26/19
+
 #Actual targets
 REAL_HEIGHT = 5.826
 REAL_WIDTH = 3.313
@@ -37,12 +40,15 @@ REAL_RATIO = (REAL_HEIGHT/REAL_WIDTH)
 REAL_PAIR_RATIO = REAL_WIDTH/(REAL_WIDTH+REAL_DISTANCE_BETWEEN)
 
 #Should be 75.5
-MIN_LEFT_ANGLE = 50
+"""MIN_LEFT_ANGLE = 50
 MAX_LEFT_ANGLE = 85
 
 #Should be 14.5
 MIN_RIGHT_ANGLE = 5
-MAX_RIGHT_ANGLE = 30
+MAX_RIGHT_ANGLE = 30"""
+
+MAX_ANGLE = 40
+MIN_ANGLE = 5
 
 GEAR_STATE = 0
 BOILER_STATE = 1
@@ -63,6 +69,20 @@ def dst2errorX(TargetCenter, Distance) :
 def pause() :
     print("pause")
     x = input()
+
+def angleToSteveAngle(angle) :
+    if (angle < -45) :
+        angle = -(90 + angle)
+    else :
+        angle = abs(angle)
+    return angle
+
+def originCentered(x) :
+    return x - X_CENTER 
+
+def originUpperLeft(x) :
+    return x +X_CENTER
+
 
 
 # Process images continuously, outputting a comamnd to the robot each cycle
@@ -121,7 +141,10 @@ def process():
         leftContours = []
         #leftContours =  [0] * 11
         #leftCount = 0
-        img_rect = img = numpy.zeros((IMG_HEIGHT, IMG_WIDTH,3), numpy.uint8)
+        if showImages:
+            img_rect = numpy.zeros((IMG_HEIGHT, IMG_WIDTH,3), numpy.uint8)
+            #blue
+            cv2.line(img_rect, (X_CENTER, 0), (X_CENTER, IMG_HEIGHT), (255, 0, 0), 2)
         #print("# of contours: " +str(len(contours)))
 
         
@@ -140,40 +163,45 @@ def process():
                 #print (h, w, w*h, ratio)
                 if abs(ratioError) < 1 and  w*h > 100:
                     tiltedRect = cv2.minAreaRect(c)
-                    angle = abs(tiltedRect[2])
+                    #angle = abs(tiltedRect[2])
+                    angle = angleToSteveAngle(tiltedRect[2])
                     #((x_t, y_t), (w_t, h_t), angle) = tiltedRect
                     #angle is negative, -90 is the same as -0
                     #right leaning is -0 to -20
                     #left learning is -90 to -70
                     #angle of targets is 14.5 and 75.5
                     #print("Angle of possibles: "+ str(angle))
-                    if angle >= MIN_RIGHT_ANGLE and angle <= MAX_RIGHT_ANGLE:
-                        #print("right X + Y: "+str(tiltedRect[0])+" angle: "+str(angle))
-                        print("right ", tiltedRect)
-                        #if rightCount >= 11:
-                        #    print("Too much contours")
-                        #    break
-                        if showImages: 
-                            cv2.rectangle(img_rect, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                        rightContours.append(tiltedRect)
-                        #rightContours.append(z)
-                        #rightCount += 1
-                        #OkCountours[okCount] = j
-                        #okCount = okCount + 1
-                    elif angle >= MIN_LEFT_ANGLE and angle <= MAX_LEFT_ANGLE:
-                        #print("lef X + Y: "+str(tiltedRect[0])+" angle: "+str(angle))
-                        print("left ", tiltedRect)
-                        #if leftCount >= 11:
-                        #    print("Too much contours")
-                        #    break
-                        if showImages:
-                            cv2.rectangle(img_rect, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                        leftContours.append(tiltedRect)
-                        #leftContours[leftCount] = z
-                        #leftCount += 1
-                        #okCount += 1
+                    properties = ((originCentered(tiltedRect[0][0]),tiltedRect[0][1]), tiltedRect[1], angle)
+                    if abs(angle) < MAX_ANGLE and abs(angle) > MIN_ANGLE:
+                        if angle > 0:
+                            #print("right X + Y: "+str(tiltedRect[0])+" angle: "+str(angle))
+                            print("right ", properties)
+                            #print("right ", tiltedRect)
+                            #if rightCount >= 11:
+                            #    print("Too much contours")
+                            #    break
+                            if showImages: 
+                                cv2.rectangle(img_rect, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                            rightContours.append(properties)
+                            #rightContours.append(z)
+                            #rightCount += 1
+                            #OkCountours[okCount] = j
+                            #okCount = okCount + 1
+                        elif angle < 0:
+                            #print("lef X + Y: "+str(tiltedRect[0])+" angle: "+str(angle))
+                            print("left ", properties)
+                            #print("left ", tiltedRect)
+                            #if leftCount >= 11:
+                            #    print("Too much contours")
+                            #    break
+                            if showImages:
+                                cv2.rectangle(img_rect, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                            leftContours.append(properties)
+                            #leftContours[leftCount] = z
+                            #leftCount += 1
+                            #okCount += 1
                     else:
-                        print("not accepted", tiltedRect)
+                        print("not accepted", properties)
                 #z+= 1
             #print("left count is: "+str(leftCount)+ " right count is: "+str(rightCount))
             """q = 0           
@@ -187,9 +215,6 @@ def process():
                 q+= 1
             """
 
-            if showImages:
-                cv2.imshow("img_rect_mid", img_rect)
-            pause()
             
             #print("# of rightContours ", len(rightContours), " # of leftContours ", len(leftContours))
             """iflen(rightContours) != 0 and len(leftContours) != 0:
@@ -216,7 +241,10 @@ def process():
                     pairError = (w_r/distanceBetween) - REAL_PAIR_RATIO
                     if pairError < 1: 
                         print("okay pair"+str(i)+" "+str(j))
-                        print("midpoint", (x_r-x_l)/2)
+                        midpoint = originUpperLeft((int)(((x_r-x_l)/2)+x_l))
+                        #Green
+                        cv2.line(img_rect, (midpoint, 0), (midpoint, IMG_HEIGHT), (0, 255, 0), 2)
+                        print("midpoint", midpoint)
                     j+= 1
                 i+= 1
                     
@@ -228,9 +256,13 @@ def process():
         if showImages:
             cv2.imshow("img_bgr",img_bgr)
             # Commented for testing
-            #cv2.imshow("img_rect", img_rect)
-            #
-
+            cv2.imshow("img_rect", img_rect)
+        
+        #######
+        #######
+        pause()   
+        #######
+        #######
         
 
         # Wait 1ms for keypress. q to quit.
