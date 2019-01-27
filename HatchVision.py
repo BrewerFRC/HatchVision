@@ -240,11 +240,26 @@ def process():
                         break
                     pairError = (w_r/distanceBetween) - REAL_PAIR_RATIO
                     if pairError < 1: 
-                        print("okay pair"+str(i)+" "+str(j))
+                        #print("okay pair"+str(i)+" "+str(j))
                         midpoint = originUpperLeft((int)(((x_r-x_l)/2)+x_l))
                         #Green
                         cv2.line(img_rect, (midpoint, 0), (midpoint, IMG_HEIGHT), (0, 255, 0), 2)
                         print("midpoint", midpoint)
+                        #focal length
+                        f = IMG_WIDTH/(2*math.tan(math.radians(53/2)))
+                        #print("focallength ", f)
+                        #f = 3.6
+                        yaw = math.degrees(math.atan(x_r/f))
+                        print("yaw ", yaw)
+                        y_average = (y_l+y_r)/2
+                        centerY = (IMG_HEIGHT/2) -.5
+                        vFocalLength = IMG_HEIGHT/(2*math.tan(math.radians(41.4/2)))
+                        print("Vertical Focal", vFocalLength)
+                        pitch = math.degrees((math.atan((IMG_HEIGHT - y_average) / vFocalLength)))+9
+                        print("pitch", pitch)
+                        distance = abs(15.5/ math.tan(math.radians(pitch)))
+                        print("distance", distance)
+
                     j+= 1
                 i+= 1
                     
