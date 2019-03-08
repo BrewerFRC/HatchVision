@@ -39,6 +39,8 @@ REAL_DISTANCE_BETWEEN = 8
 REAL_RATIO = (REAL_HEIGHT/REAL_WIDTH)
 REAL_PAIR_RATIO = REAL_WIDTH/(REAL_WIDTH+REAL_DISTANCE_BETWEEN)
 
+
+
 #Should be 75.5
 """MIN_LEFT_ANGLE = 50
 MAX_LEFT_ANGLE = 85
@@ -50,8 +52,7 @@ MAX_RIGHT_ANGLE = 30"""
 MAX_ANGLE = 40
 MIN_ANGLE = 5
 
-GEAR_STATE = 0
-BOILER_STATE = 1
+
 video = pistream.PiVideoStream((IMG_WIDTH,IMG_HEIGHT)).start()
 time.sleep(2)  #Give camera a chance to stablize
 
@@ -90,7 +91,7 @@ def process():
     # Init contour measurements for picture saving
     h = 0
     w = 0
-    center = 0
+    center = 
     imageCounter = 0  #Counter for filename of saved images
 
     kernel = numpy.ones((3,3),
@@ -141,6 +142,8 @@ def process():
         leftContours = []
         #leftContours =  [0] * 11
         #leftCount = 0
+        bestPairX = IMG_WIDTH
+        bestPair = []
         if showImages:
             img_rect = numpy.zeros((IMG_HEIGHT, IMG_WIDTH,3), numpy.uint8)
             #blue
@@ -240,7 +243,7 @@ def process():
                         break
                     pairError = (w_r/distanceBetween) - REAL_PAIR_RATIO
                     if pairError < 1: 
-                        #print("okay pair"+str(i)+" "+str(j))
+                        """#print("okay pair"+str(i)+" "+str(j))
                         midpoint = originUpperLeft((int)(((x_r-x_l)/2)+x_l))
                         #Green
                         cv2.line(img_rect, (midpoint, 0), (midpoint, IMG_HEIGHT), (0, 255, 0), 2)
@@ -258,10 +261,36 @@ def process():
                         pitch = math.degrees((math.atan((IMG_HEIGHT - y_average) / vFocalLength)))+9
                         print("pitch", pitch)
                         distance = abs(15.5/ math.tan(math.radians(pitch)))
-                        print("distance", distance)
+                        print("distance", distance)"""
+                        distanceToCenter = abs(distanceBetween + x_r - X_CENTER)
+                        if (distanceToCenter < bestPairX)
+                            bestPair = [rightContours(i),leftContours(j)]
+
 
                     j+= 1
                 i+= 1
+                if (len(bestPair) == 2)
+                    (x_r,y_r),(w_r,h_r), angle_r = bestPair[0]
+                    (x_l, y_l), (w_l, h_l), angle_l = bestPair[1]
+                    #print("okay pair"+str(i)+" "+str(j))
+                    midpoint = originUpperLeft((int)(((x_r-x_l)/2)+x_l))
+                    #Green
+                    cv2.line(img_rect, (midpoint, 0), (midpoint, IMG_HEIGHT), (0, 255, 0), 2)
+                    print("midpoint", midpoint)
+                    #focal length
+                    f = IMG_WIDTH/(2*math.tan(math.radians(53/2)))
+                    #print("focallength ", f)
+                    #f = 3.6
+                    yaw = math.degrees(math.atan(x_r/f))
+                    print("yaw ", yaw)
+                    y_average = (y_l+y_r)/2
+                    centerY = (IMG_HEIGHT/2) -.5
+                    vFocalLength = IMG_HEIGHT/(2*math.tan(math.radians(41.4/2)))
+                    print("Vertical Focal", vFocalLength)
+                    pitch = math.degrees((math.atan((IMG_HEIGHT - y_average) / vFocalLength)))+9
+                    print("pitch", pitch)
+                    distance = abs(15.5/ math.tan(math.radians(pitch)))
+                    print("distance", distance)
                     
         else:
             print ("No contours found")
