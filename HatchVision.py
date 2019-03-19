@@ -91,7 +91,7 @@ def process():
     # Init contour measurements for picture saving
     h = 0
     w = 0
-    center = 
+    center = X_CENTER
     imageCounter = 0  #Counter for filename of saved images
 
     kernel = numpy.ones((3,3),
@@ -243,6 +243,10 @@ def process():
                         break
                     pairError = (w_r/distanceBetween) - REAL_PAIR_RATIO
                     if pairError < 1: 
+                        distanceToCenter = abs(distanceBetween + x_r - X_CENTER)
+                        if (distanceToCenter < bestPairX)
+                            bestPair = [rightContours(i),leftContours(j)]
+
                         """#print("okay pair"+str(i)+" "+str(j))
                         midpoint = originUpperLeft((int)(((x_r-x_l)/2)+x_l))
                         #Green
@@ -262,9 +266,7 @@ def process():
                         print("pitch", pitch)
                         distance = abs(15.5/ math.tan(math.radians(pitch)))
                         print("distance", distance)"""
-                        distanceToCenter = abs(distanceBetween + x_r - X_CENTER)
-                        if (distanceToCenter < bestPairX)
-                            bestPair = [rightContours(i),leftContours(j)]
+                       
 
 
                     j+= 1
