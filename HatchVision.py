@@ -244,7 +244,7 @@ def process():
                     pairError = (w_r/distanceBetween) - REAL_PAIR_RATIO
                     if pairError < 1: 
                         distanceToCenter = abs(distanceBetween + x_r - X_CENTER)
-                        if (distanceToCenter < bestPairX)
+                        if distanceToCenter < bestPairX :
                             bestPair = [rightContours(i),leftContours(j)]
 
                         """#print("okay pair"+str(i)+" "+str(j))
@@ -271,7 +271,7 @@ def process():
 
                     j+= 1
                 i+= 1
-                if (len(bestPair) == 2)
+                if (len(bestPair) == 2) :
                     (x_r,y_r),(w_r,h_r), angle_r = bestPair[0]
                     (x_l, y_l), (w_l, h_l), angle_l = bestPair[1]
                     #print("okay pair"+str(i)+" "+str(j))
